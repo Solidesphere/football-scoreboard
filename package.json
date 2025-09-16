@@ -1,0 +1,50 @@
+{
+  "name": "solidscore",
+  "version": "1.0.0",
+  "description": "Football scoreboard app built with Electron + React",
+  "main": "main.js",
+  "author": "KahiL Mohamed Amine kahil.mohamed.amine@proton.me",
+  "scripts": {
+    "start": "electron .",
+    "build-renderer": "cd renderer && npm install && npm run build",
+    "electron:build": "npm run build-renderer && electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^26.0.0",
+    "electron-builder": "^24.6.0"
+  },
+  "build": {
+    "appId": "com.yourname.footballscoreboard",
+    "productName": "Football Scoreboard",
+    "files": [
+      "main.js",
+      "preload.js",
+      "config.json",
+      "logos/**/*",
+      "renderer/build/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+     "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,       
+      "perMachine": true,       
+      "allowToChangeInstallationDirectory": true, 
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Football Scoreboard"
+    },
+    "mac": {
+      "target": "dmg"
+    }
+  }
+}

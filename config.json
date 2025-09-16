@@ -1,0 +1,16 @@
+{
+  "teamA": {
+    "name": "MCA",
+    "logo": "file://C:/Users/khlme/OneDrive/Desktop/football-scoreboard/logos/teamA.png"
+  },
+  "teamB": {
+    "name": "USMA",
+    "logo": "file://C:/Users/khlme/OneDrive/Desktop/football-scoreboard/logos/teamB.png"
+  },
+  "league": {
+    "name": "League Name",
+    "logo": "file://C:/Users/khlme/OneDrive/Desktop/football-scoreboard/logos/league.png"
+  },
+  "type": "knockout",
+  "leagueLogo": "file://C:/Users/khlme/OneDrive/Desktop/football-scoreboard/logos/league.png"
+}
