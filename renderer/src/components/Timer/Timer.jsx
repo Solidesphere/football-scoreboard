@@ -7,7 +7,8 @@ export default function Timer({
   addTime,
   subtractTime,
   phase,
-  startTimer,
+  resume,
+  startTimer
 }) {
   const formatTime = (timeInSeconds) => {
     const minutes = Math.floor(timeInSeconds / 60)
@@ -19,6 +20,8 @@ export default function Timer({
 
   const getPhaseLabel = () => {
     switch (phase) {
+      case "READY":
+        return "READY";
       case "FIRST_HALF":
         return "First Half";
       case "HALFTIME":
@@ -57,7 +60,7 @@ export default function Timer({
 
       <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
         <button
-          onClick={startTimer}
+          onClick={resume}
           style={{
             flex: 1,
             padding: "10px",

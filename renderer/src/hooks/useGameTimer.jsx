@@ -27,6 +27,30 @@ export default function useGameTimer(initialData) {
     intervalRef.current = setInterval(() => tick(1), 1000);
   };
 
+
+
+const resume = () => {
+  if (
+    (gameData.status === "FIRST_HALF" && gameData.timer === 0 * 60) ||
+    (gameData.status === "FIRST_HALF" && gameData.timer === 45 * 60) ||
+    (gameData.status === "SECOND_HALF" && gameData.timer === 45 * 60) ||
+    (gameData.status === "SECOND_HALF" && gameData.timer === 90 * 60) ||
+    (gameData.status === "FULLTIME" && gameData.timer === 90 * 60) ||
+    (gameData.status === "EXTRA_TIME_FIRST" && gameData.timer === 90 * 60) ||
+    (gameData.status === "EXTRA_TIME_FIRST" && gameData.timer === 105 * 60) ||
+    (gameData.status === "EXTRA_TIME_FIRST_PENDING" && gameData.timer === 105 * 60) ||
+    (gameData.status === "EXTRA_TIME_SECOND" && gameData.timer === 105 * 60)
+   
+  ) return;
+
+  // Prevent starting multiple intervals
+  if (intervalRef.current) return;
+
+  // Start the interval
+  intervalRef.current = setInterval(() => tick(1), 1000);
+};
+
+
   const tick = (seconds) => {
     setGameData((prev) => {
       let newTimer = prev.timer + seconds;
@@ -45,37 +69,25 @@ export default function useGameTimer(initialData) {
       let newStatus = prev.status;
 
       // ---------------- Automatic phase transitions ----------------
-      if (prev.status === "FIRST_HALF" && newTimer >= 45 * 60) {
-        newStatus = "HALFTIME";
-        newTimer = 45 * 60;
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      } else if (
-        prev.status === "SECOND_HALF" &&
-        newTimer >= 90 * 60 + (prev.stoppageTime ?? 0)
-      ) {
-        if (prev.type === "league") {
-          newStatus = "FULLTIME";
-        } else if (prev.type === "knockout") {
-          newStatus =
-            prev.teamA.score === prev.teamB.score
-              ? "EXTRA_TIME_FIRST_PENDING"
-              : "FULLTIME";
-        }
-        newTimer = 90 * 60 + (prev.stoppageTime ?? 0);
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      } else if (prev.status === "EXTRA_TIME_FIRST" && newTimer >= 105 * 60) {
-        newStatus = "EXTRA_TIME_SECOND_PENDING";
-        newTimer = 105 * 60;
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      } else if (prev.status === "EXTRA_TIME_SECOND" && newTimer >= 120 * 60) {
-        newStatus = "EXTRA_TIME_END";
-        newTimer = 120 * 60;
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+const timeThresholds = {
+  FIRST_HALF: { max: 45 * 60, next: "HALFTIME" },
+  SECOND_HALF: { 
+    max: 90 * 60, 
+    next: prev => prev.type === "league" ? "FULLTIME" : 
+          (prev.teamA.score === prev.teamB.score ? "EXTRA_TIME_FIRST_PENDING" : "FULLTIME")
+  },
+  EXTRA_TIME_FIRST: { max: 105 * 60, next: "EXTRA_TIME_SECOND_PENDING" },
+  EXTRA_TIME_SECOND: { max: 120 * 60, next: "EXTRA_TIME_END" },
+};
+
+const threshold = timeThresholds[prev.status];
+
+if (threshold && newTimer >= threshold.max) {
+  newStatus = typeof threshold.next === "function" ? threshold.next(prev) : threshold.next;
+  newTimer = threshold.max;
+  clearInterval(intervalRef.current);
+  intervalRef.current = null;
+}
 
       const newData = { ...prev, timer: newTimer, status: newStatus };
       updateScoreboard(newData);
@@ -208,5 +220,6 @@ export default function useGameTimer(initialData) {
     startExtraTimeFirstHalf,
     startExtraTimeSecondHalf,
     startPenalties,
+    resume,
   };
 }

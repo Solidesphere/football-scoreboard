@@ -29,6 +29,7 @@ export default function App() {
     pauseTimer,
     resetMatch,
     startTimer,
+    resume,
     changeScore,
     addTime,
     subtractTime,
@@ -77,6 +78,42 @@ export default function App() {
     })();
   }, []);
 
+
+  const gameActions = [
+  {
+    label: "Start First Half",
+    color: "#28a745",
+    onClick: startFirstHalf,
+    statusRequired: ["FIRST_HALF"],
+  },
+  {
+    label: "Start Second Half",
+    color: "#007bff",
+    onClick: startSecondHalf,
+    statusRequired: ["HALFTIME"],
+  },
+  {
+    label: "Start Extra Time - 1st Half",
+    color: "#fd7e14",
+    onClick: startExtraTimeFirstHalf,
+    statusRequired: ["EXTRA_TIME_FIRST_PENDING"],
+    condition: () => gameData.teamA.score === gameData.teamB.score,
+  },
+  {
+    label: "Start Extra Time - 2nd Half",
+    color: "#fd7e14",
+    onClick: startExtraTimeSecondHalf,
+    statusRequired: ["EXTRA_TIME_SECOND_PENDING"],
+  },
+  {
+    label: "Start Penalties",
+    color: "#dc3545",
+    onClick: startPenalties,
+    statusRequired: ["EXTRA_TIME_END"],
+    condition: () => gameData.teamA.score === gameData.teamB.score,
+  },
+];
+
   return (
     <div
       style={{
@@ -117,6 +154,7 @@ export default function App() {
           addTime={addTime}
           subtractTime={subtractTime}
           startTimer={startTimer}
+          resume={resume}
         />
       </div>
 
@@ -141,92 +179,41 @@ export default function App() {
       </div>
 
       {/* ---------------- Phase Controls ---------------- */}
-      <div style={{ textAlign: "center", marginBottom: 30 }}>
-        {gameData.status === "FIRST_HALF" && (
-          <button
-            onClick={startFirstHalf}
-            style={{
-              background: "#28a745",
-              color: "white",
-              padding: "15px 25px",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Start First Half
-          </button>
-        )}
+      
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "15px",
+    justifyItems: "center",
+    marginBottom: 30,
+  }}
+>
+  {gameActions.map((action, index) => {
+   
 
-        {gameData.status === "HALFTIME" && (
-          <button
-            onClick={startSecondHalf}
-            style={{
-              background: "#007bff",
-              color: "white",
-              padding: "15px 25px",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Start Second Half
-          </button>
-        )}
+    return (
+      <button
+        key={index}
+        onClick={action.onClick}
+        
+        style={{
+          background: action.color,
+          color: "white",
+          padding: "15px 25px",
+          fontWeight: "bold",
+          fontSize: "1.1rem",
+          borderRadius: 8,
+          width: "100%", // button fills the grid cell
+          
+        }}
+      >
+        {action.label}
+      </button>
+    );
+  })}
+</div>
 
-        {(gameData.status === "EXTRA_TIME_FIRST_PENDING"&& (gameData.teamA.score == gameData.teamB.score ))&& (
-          <button
-            onClick={startExtraTimeFirstHalf}
-            style={{
-              background: "#fd7e14",
-              color: "white",
-              padding: "15px 25px",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Start Extra Time - 1st Half
-          </button>
-        )}
-
-        {gameData.status === "EXTRA_TIME_SECOND_PENDING" && (
-          <button
-            onClick={startExtraTimeSecondHalf}
-            style={{
-              background: "#fd7e14",
-              color: "white",
-              padding: "15px 25px",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Start Extra Time - 2nd Half
-          </button>
-        )}
-
-        {(gameData.status === "EXTRA_TIME_END" && (gameData.teamA.score == gameData.teamB.score ) ) && (
-          <button
-            onClick={startPenalties}
-            style={{
-              background: "#dc3545",
-              color: "white",
-              padding: "15px 25px",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Start Penalties
-          </button>
-        )}
-      </div>
 
       {/* ---------------- Scoreboard Manager ---------------- */}
       <ScoreboardManager

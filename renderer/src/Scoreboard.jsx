@@ -7,7 +7,7 @@ export default function Scoreboard() {
     teamB: { name: "Team B", score: 0, logo: "" },
     leagueLogo: "", // added league logo
     timer: 0,
-    status: "FIRST_HALF",
+    status: "READY",
     type: "league",
   });
 
@@ -21,7 +21,7 @@ export default function Scoreboard() {
         teamA: { ...prev.teamA, ...cfg.teamA, score: 0 },
         teamB: { ...prev.teamB, ...cfg.teamB, score: 0 },
         timer: 0,
-        status: "FIRST_HALF",
+        status: "READY",
       }));
     })();
 
