@@ -5,11 +5,13 @@ import Timer from "./components/Timer/Timer";
 import ScoreControl from "./components/ScoreControl/ScoreControl";
 import ScoreboardManager from "./components/ScoreboardManager/ScoreboardManager";
 import useGameTimer from "./hooks/useGameTimer";
+import ConfigPage from "./ConfigPage";
 
 export default function App() {
   const [scoreboards, setScoreboards] = useState([]);
   const [displays, setDisplays] = useState([]);
   const [selectedDisplay, setSelectedDisplay] = useState(0);
+  const [showConfig, setShowConfig] = useState(false);
 
   const initialGameData = {
     teamA: { name: "Team A", score: 0, logo: "" },
@@ -78,43 +80,44 @@ export default function App() {
     })();
   }, []);
 
-
   const gameActions = [
-  {
-    label: "Start First Half",
-    color: "#28a745",
-    onClick: startFirstHalf,
-    statusRequired: ["FIRST_HALF"],
-  },
-  {
-    label: "Start Second Half",
-    color: "#007bff",
-    onClick: startSecondHalf,
-    statusRequired: ["HALFTIME"],
-  },
-  {
-    label: "Start Extra Time - 1st Half",
-    color: "#fd7e14",
-    onClick: startExtraTimeFirstHalf,
-    statusRequired: ["EXTRA_TIME_FIRST_PENDING"],
-    condition: () => gameData.teamA.score === gameData.teamB.score,
-  },
-  {
-    label: "Start Extra Time - 2nd Half",
-    color: "#fd7e14",
-    onClick: startExtraTimeSecondHalf,
-    statusRequired: ["EXTRA_TIME_SECOND_PENDING"],
-  },
-  {
-    label: "Start Penalties",
-    color: "#dc3545",
-    onClick: startPenalties,
-    statusRequired: ["EXTRA_TIME_END"],
-    condition: () => gameData.teamA.score === gameData.teamB.score,
-  },
-];
+    {
+      label: "Start First Half",
+      color: "#28a745",
+      onClick: startFirstHalf,
+      statusRequired: ["FIRST_HALF"],
+    },
+    {
+      label: "Start Second Half",
+      color: "#007bff",
+      onClick: startSecondHalf,
+      statusRequired: ["HALFTIME"],
+    },
+    {
+      label: "Start Extra Time - 1st Half",
+      color: "#fd7e14",
+      onClick: startExtraTimeFirstHalf,
+      statusRequired: ["EXTRA_TIME_FIRST_PENDING"],
+      condition: () => gameData.teamA.score === gameData.teamB.score,
+    },
+    {
+      label: "Start Extra Time - 2nd Half",
+      color: "#fd7e14",
+      onClick: startExtraTimeSecondHalf,
+      statusRequired: ["EXTRA_TIME_SECOND_PENDING"],
+    },
+    {
+      label: "Start Penalties",
+      color: "#dc3545",
+      onClick: startPenalties,
+      statusRequired: ["EXTRA_TIME_END"],
+      condition: () => gameData.teamA.score === gameData.teamB.score,
+    },
+  ];
 
-  return (
+  return showConfig ? (
+    <ConfigPage goBack={() => setShowConfig(false)} />
+  ) : (
     <div
       style={{
         padding: 30,
@@ -179,41 +182,35 @@ export default function App() {
       </div>
 
       {/* ---------------- Phase Controls ---------------- */}
-      
-<div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "15px",
-    justifyItems: "center",
-    marginBottom: 30,
-  }}
->
-  {gameActions.map((action, index) => {
-   
-
-    return (
-      <button
-        key={index}
-        onClick={action.onClick}
-        
+      <div
         style={{
-          background: action.color,
-          color: "white",
-          padding: "15px 25px",
-          fontWeight: "bold",
-          fontSize: "1.1rem",
-          borderRadius: 8,
-          width: "100%", // button fills the grid cell
-          
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "15px",
+          justifyItems: "center",
+          marginBottom: 30,
         }}
       >
-        {action.label}
-      </button>
-    );
-  })}
-</div>
-
+        {gameActions.map((action, index) => {
+          return (
+            <button
+              key={index}
+              onClick={action.onClick}
+              style={{
+                background: action.color,
+                color: "white",
+                padding: "15px 25px",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                borderRadius: 8,
+                width: "100%", // button fills the grid cell
+              }}
+            >
+              {action.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* ---------------- Scoreboard Manager ---------------- */}
       <ScoreboardManager
@@ -228,7 +225,7 @@ export default function App() {
 
       <div style={{ textAlign: "center", marginTop: 30 }}>
         <button
-          onClick={() => send("show-config")}
+          onClick={() => setShowConfig(true)}
           style={{
             background: "#6c757d",
             color: "white",
