@@ -16,10 +16,10 @@
     "backgroundType": "image",
     "backgroundColor": "#0f0f0f",
     "backgroundImage": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/background.png",
-    "textColor": "#343232",
+    "textColor": "#333333",
     "accentColor": "#373434",
-    "logoSizeA": 195,
-    "logoSizeB": 195,
+    "logoSizeA": 200,
+    "logoSizeB": 200,
     "mainBgColor": "#f5f5f5",
     "scoreAreaBgColor": "#ffffff"
   },

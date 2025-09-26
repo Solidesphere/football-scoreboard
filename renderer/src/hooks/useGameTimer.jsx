@@ -27,29 +27,27 @@ export default function useGameTimer(initialData) {
     intervalRef.current = setInterval(() => tick(1), 1000);
   };
 
+  const resume = () => {
+    if (
+      (gameData.status === "FIRST_HALF" && gameData.timer === 0 * 60) ||
+      (gameData.status === "FIRST_HALF" && gameData.timer === 45 * 60) ||
+      (gameData.status === "SECOND_HALF" && gameData.timer === 45 * 60) ||
+      (gameData.status === "SECOND_HALF" && gameData.timer === 90 * 60) ||
+      (gameData.status === "FULLTIME" && gameData.timer === 90 * 60) ||
+      (gameData.status === "EXTRA_TIME_FIRST" && gameData.timer === 90 * 60) ||
+      (gameData.status === "EXTRA_TIME_FIRST" && gameData.timer === 105 * 60) ||
+      (gameData.status === "EXTRA_TIME_FIRST_PENDING" &&
+        gameData.timer === 105 * 60) ||
+      (gameData.status === "EXTRA_TIME_SECOND" && gameData.timer === 105 * 60)
+    )
+      return;
 
+    // Prevent starting multiple intervals
+    if (intervalRef.current) return;
 
-const resume = () => {
-  if (
-    (gameData.status === "FIRST_HALF" && gameData.timer === 0 * 60) ||
-    (gameData.status === "FIRST_HALF" && gameData.timer === 45 * 60) ||
-    (gameData.status === "SECOND_HALF" && gameData.timer === 45 * 60) ||
-    (gameData.status === "SECOND_HALF" && gameData.timer === 90 * 60) ||
-    (gameData.status === "FULLTIME" && gameData.timer === 90 * 60) ||
-    (gameData.status === "EXTRA_TIME_FIRST" && gameData.timer === 90 * 60) ||
-    (gameData.status === "EXTRA_TIME_FIRST" && gameData.timer === 105 * 60) ||
-    (gameData.status === "EXTRA_TIME_FIRST_PENDING" && gameData.timer === 105 * 60) ||
-    (gameData.status === "EXTRA_TIME_SECOND" && gameData.timer === 105 * 60)
-   
-  ) return;
-
-  // Prevent starting multiple intervals
-  if (intervalRef.current) return;
-
-  // Start the interval
-  intervalRef.current = setInterval(() => tick(1), 1000);
-};
-
+    // Start the interval
+    intervalRef.current = setInterval(() => tick(1), 1000);
+  };
 
   const tick = (seconds) => {
     setGameData((prev) => {
@@ -69,25 +67,32 @@ const resume = () => {
       let newStatus = prev.status;
 
       // ---------------- Automatic phase transitions ----------------
-const timeThresholds = {
-  FIRST_HALF: { max: 45 * 60, next: "HALFTIME" },
-  SECOND_HALF: { 
-    max: 90 * 60, 
-    next: prev => prev.type === "league" ? "FULLTIME" : 
-          (prev.teamA.score === prev.teamB.score ? "EXTRA_TIME_FIRST_PENDING" : "FULLTIME")
-  },
-  EXTRA_TIME_FIRST: { max: 105 * 60, next: "EXTRA_TIME_SECOND_PENDING" },
-  EXTRA_TIME_SECOND: { max: 120 * 60, next: "EXTRA_TIME_END" },
-};
+      const timeThresholds = {
+        FIRST_HALF: { max: 45 * 60, next: "HALFTIME" },
+        SECOND_HALF: {
+          max: 90 * 60,
+          next: (prev) =>
+            prev.type === "league"
+              ? "FULLTIME"
+              : prev.teamA.score === prev.teamB.score
+              ? "EXTRA_TIME_FIRST_PENDING"
+              : "FULLTIME",
+        },
+        EXTRA_TIME_FIRST: { max: 105 * 60, next: "EXTRA_TIME_SECOND_PENDING" },
+        EXTRA_TIME_SECOND: { max: 120 * 60, next: "EXTRA_TIME_END" },
+      };
 
-const threshold = timeThresholds[prev.status];
+      const threshold = timeThresholds[prev.status];
 
-if (threshold && newTimer >= threshold.max) {
-  newStatus = typeof threshold.next === "function" ? threshold.next(prev) : threshold.next;
-  newTimer = threshold.max;
-  clearInterval(intervalRef.current);
-  intervalRef.current = null;
-}
+      if (threshold && newTimer >= threshold.max) {
+        newStatus =
+          typeof threshold.next === "function"
+            ? threshold.next(prev)
+            : threshold.next;
+        newTimer = threshold.max;
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
 
       const newData = { ...prev, timer: newTimer, status: newStatus };
       updateScoreboard(newData);
@@ -127,6 +132,7 @@ if (threshold && newTimer >= threshold.max) {
         type: cfg.type,
         extraTime: false,
         penalties: false,
+        penaltyScores: { teamA: [], teamB: [] },
       };
       updateScoreboard(resetData);
       return resetData;
@@ -199,7 +205,18 @@ if (threshold && newTimer >= threshold.max) {
   // ---------------- Manual Game Update ----------------
   const setGame = (newData) => {
     setGameData((prev) => {
-      const merged = { ...prev, ...newData };
+      // Special merge for penaltyScores arrays
+      let merged = { ...prev, ...newData };
+      if (newData.penaltyScores) {
+        merged.penaltyScores = {
+          teamA: Array.isArray(newData.penaltyScores.teamA)
+            ? newData.penaltyScores.teamA
+            : prev.penaltyScores.teamA,
+          teamB: Array.isArray(newData.penaltyScores.teamB)
+            ? newData.penaltyScores.teamB
+            : prev.penaltyScores.teamB,
+        };
+      }
       updateScoreboard(merged);
       return merged;
     });

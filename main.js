@@ -2,6 +2,21 @@ const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
+// Relay get-timeout requests from scoreboard to main control panel
+ipcMain.on("get-timeout", (event) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("get-timeout");
+  }
+});
+// Relay timeout timer updates to all scoreboard windows
+ipcMain.on("update-timeout", (_, timeoutValue) => {
+  Object.values(scoreboardWindows).forEach((win) => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send("update-timeout", timeoutValue);
+    }
+  });
+});
+
 let mainWindow;
 let configWindow;
 let scoreboardWindows = {}; // key: displayId, value: BrowserWindow
@@ -15,7 +30,11 @@ if (!fs.existsSync(logosDir)) fs.mkdirSync(logosDir);
 // ---------------- Config Helpers ----------------
 function loadConfig() {
   if (fs.existsSync(configPath)) return JSON.parse(fs.readFileSync(configPath));
-  return { teamA: { name: "Team A", logo: "" }, teamB: { name: "Team B", logo: "" }, type: "league" };
+  return {
+    teamA: { name: "Team A", logo: "" },
+    teamB: { name: "Team B", logo: "" },
+    type: "league",
+  };
 }
 
 function saveConfig(cfg) {
@@ -28,17 +47,17 @@ const isDev = !app.isPackaged;
 // ---------------- Window Navigation ----------------
 function setupWindowNavigation(win) {
   // Prevent opening new windows (links with target="_blank")
-  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
   // Prevent navigation to external sites
-  win.webContents.on('will-navigate', (event, url) => {
-    const allowedDev = isDev && url.startsWith('http://localhost:3000');
-    const allowedProd = !isDev && url.startsWith('file://');
+  win.webContents.on("will-navigate", (event, url) => {
+    const allowedDev = isDev && url.startsWith("http://localhost:3000");
+    const allowedProd = !isDev && url.startsWith("file://");
     if (!allowedDev && !allowedProd) event.preventDefault();
   });
 
   // Optional: prevent drag & drop from navigating away
-  win.webContents.on('will-prevent-unload', e => e.preventDefault());
+  win.webContents.on("will-prevent-unload", (e) => e.preventDefault());
 }
 
 // ---------------- Window Factory ----------------
@@ -50,7 +69,7 @@ function createMainWindow() {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: !isDev
+      webSecurity: !isDev,
     },
     icon: path.join(__dirname, "assets", "icon.ico"),
   });
@@ -66,7 +85,7 @@ function createMainWindow() {
 
   mainWindow.on("closed", () => {
     if (configWindow && !configWindow.isDestroyed()) configWindow.close();
-    Object.values(scoreboardWindows).forEach(win => {
+    Object.values(scoreboardWindows).forEach((win) => {
       if (win && !win.isDestroyed()) win.close();
     });
     mainWindow = null;
@@ -77,31 +96,36 @@ function createMainWindow() {
 function createScoreboardWindow(displayId = 0) {
   const displays = screen.getAllDisplays();
   if (displayId >= displays.length) return;
+
+  // Check if a scoreboard window is already open on this display
+  if (
+    scoreboardWindows[displayId] &&
+    !scoreboardWindows[displayId].isDestroyed()
+  ) {
+    // Return the already open window without creating a new one
+    return scoreboardWindows[displayId];
+  }
+
   const { bounds } = displays[displayId];
 
-  // Close existing window for this display
-  if (scoreboardWindows[displayId] && !scoreboardWindows[displayId].isDestroyed()) {
-    scoreboardWindows[displayId].close();
-  }
-
   const win = new BrowserWindow({
-  x: bounds.x,
-  y: bounds.y,
-  width: bounds.width,
-  height: bounds.height,
-  frame: false,          // hide title bar
-  resizable: false,
-  skipTaskbar: true,     // remove from taskbar
-  fullscreen: true,      // fullscreen mode
-  fullscreenable: true,
-  focusable: true,
-  webPreferences: {
-    preload: path.join(__dirname, "preload.js"),
-    nodeIntegration: false,
-    contextIsolation: true,
-    webSecurity: !isDev
-  }
-});
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+    frame: false, // hide title bar
+    resizable: false,
+    skipTaskbar: true, // remove from taskbar
+    fullscreen: true, // fullscreen mode
+    fullscreenable: true,
+    focusable: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: !isDev,
+    },
+  });
   setupWindowNavigation(win);
 
   // Load URL
@@ -113,7 +137,7 @@ function createScoreboardWindow(displayId = 0) {
   }
 
   // Remove scrollbars via injected CSS
-  win.webContents.on('did-finish-load', () => {
+  win.webContents.on("did-finish-load", () => {
     win.webContents.insertCSS(`
       html, body, #root {
         margin: 0;
@@ -133,7 +157,6 @@ function createScoreboardWindow(displayId = 0) {
   return win;
 }
 
-
 function createConfigWindow() {
   configWindow = new BrowserWindow({
     width: 500,
@@ -142,8 +165,8 @@ function createConfigWindow() {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: !isDev
-    }
+      webSecurity: !isDev,
+    },
   });
 
   setupWindowNavigation(configWindow);
@@ -162,14 +185,14 @@ function createConfigWindow() {
 app.on("ready", () => createMainWindow());
 
 app.on("window-all-closed", () => {
-  Object.values(scoreboardWindows).forEach(win => {
+  Object.values(scoreboardWindows).forEach((win) => {
     if (win && !win.isDestroyed()) win.destroy();
   });
   if (process.platform !== "darwin") app.quit();
 });
 
 app.on("before-quit", () => {
-  Object.values(scoreboardWindows).forEach(win => {
+  Object.values(scoreboardWindows).forEach((win) => {
     if (win && !win.isDestroyed()) win.destroy();
   });
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.destroy();
@@ -182,12 +205,14 @@ app.on("activate", () => {
 
 // ---------------- IPC ----------------
 ipcMain.on("update-scoreboard", (_, data) => {
-  Object.values(scoreboardWindows).forEach(win => {
+  Object.values(scoreboardWindows).forEach((win) => {
     if (win && !win.isDestroyed()) win.webContents.send("update-data", data);
   });
 });
 
-ipcMain.on("show-scoreboard", (_, displayId) => createScoreboardWindow(displayId));
+ipcMain.on("show-scoreboard", (_, displayId) =>
+  createScoreboardWindow(displayId)
+);
 ipcMain.on("show-config", () => createConfigWindow());
 
 ipcMain.on("save-config", (_, data) => {
@@ -195,28 +220,66 @@ ipcMain.on("save-config", (_, data) => {
 
   const cfgToSend = {
     ...data,
-    teamA: { ...data.teamA, logo: data.teamA.logo ? `file://${path.join(logosDir, path.basename(data.teamA.logo)).replace(/\\/g, "/")}` : "" },
-    teamB: { ...data.teamB, logo: data.teamB.logo ? `file://${path.join(logosDir, path.basename(data.teamB.logo)).replace(/\\/g, "/")}` : "" }
+    teamA: {
+      ...data.teamA,
+      logo: data.teamA.logo
+        ? `file://${path
+            .join(logosDir, path.basename(data.teamA.logo))
+            .replace(/\\/g, "/")}`
+        : "",
+    },
+    teamB: {
+      ...data.teamB,
+      logo: data.teamB.logo
+        ? `file://${path
+            .join(logosDir, path.basename(data.teamB.logo))
+            .replace(/\\/g, "/")}`
+        : "",
+    },
   };
 
-  [mainWindow, configWindow, ...Object.values(scoreboardWindows)].forEach(win => {
-    if (win && !win.isDestroyed()) win.webContents.send("load-config", cfgToSend);
-  });
+  [mainWindow, configWindow, ...Object.values(scoreboardWindows)].forEach(
+    (win) => {
+      if (win && !win.isDestroyed())
+        win.webContents.send("load-config", cfgToSend);
+    }
+  );
 });
 
 ipcMain.handle("get-config", () => {
   const cfg = loadConfig();
   return {
     ...cfg,
-    teamA: { ...cfg.teamA, logo: cfg.teamA.logo ? `file://${path.join(logosDir, path.basename(cfg.teamA.logo)).replace(/\\/g, "/")}` : "" },
-    teamB: { ...cfg.teamB, logo: cfg.teamB.logo ? `file://${path.join(logosDir, path.basename(cfg.teamB.logo)).replace(/\\/g, "/")}` : "" },
-      leagueLogo: cfg.leagueLogo ? `file://${path.join(logosDir, path.basename(cfg.leagueLogo)).replace(/\\/g, "/")}` : ""};
+    teamA: {
+      ...cfg.teamA,
+      logo: cfg.teamA.logo
+        ? `file://${path
+            .join(logosDir, path.basename(cfg.teamA.logo))
+            .replace(/\\/g, "/")}`
+        : "",
+    },
+    teamB: {
+      ...cfg.teamB,
+      logo: cfg.teamB.logo
+        ? `file://${path
+            .join(logosDir, path.basename(cfg.teamB.logo))
+            .replace(/\\/g, "/")}`
+        : "",
+    },
+    leagueLogo: cfg.leagueLogo
+      ? `file://${path
+          .join(logosDir, path.basename(cfg.leagueLogo))
+          .replace(/\\/g, "/")}`
+      : "",
+  };
 });
 
 ipcMain.handle("pick-logo", async (_, teamKey) => {
   const result = await dialog.showOpenDialog({
     title: "Select Team Logo",
-    filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "gif", "svg"] }],
+    filters: [
+      { name: "Images", extensions: ["png", "jpg", "jpeg", "gif", "svg"] },
+    ],
     properties: ["openFile"],
   });
 
@@ -233,8 +296,10 @@ ipcMain.handle("pick-logo", async (_, teamKey) => {
 ipcMain.handle("pick-league-logo", async () => {
   const result = await dialog.showOpenDialog({
     title: "Select League Logo",
-    filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "gif", "svg"] }],
-    properties: ["openFile"]
+    filters: [
+      { name: "Images", extensions: ["png", "jpg", "jpeg", "gif", "svg"] },
+    ],
+    properties: ["openFile"],
   });
 
   if (result.canceled || result.filePaths.length === 0) return null;
@@ -258,14 +323,14 @@ ipcMain.handle("get-displays", () => {
     width: d.bounds.width,
     height: d.bounds.height,
     x: d.bounds.x,
-    y: d.bounds.y
+    y: d.bounds.y,
   }));
 });
 
 ipcMain.handle("get-scoreboards", () => {
   return Object.entries(scoreboardWindows).map(([displayId, win]) => ({
     displayId: Number(displayId),
-    bounds: win.getBounds()
+    bounds: win.getBounds(),
   }));
 });
 
