@@ -1,21 +1,21 @@
 {
   "teamA": {
-    "name": "MCA",
-    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamA.png"
+    "name": "Team A",
+    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamA.jpg"
   },
   "teamB": {
-    "name": "USMA",
-    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamB.png"
+    "name": "Team B",
+    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamB.jpg"
   },
   "league": {
     "name": "League Name",
-    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/league.png"
+    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/league.jpg"
   },
   "type": "knockout",
   "scoreboardStyle": {
-    "backgroundType": "image",
-    "backgroundColor": "#0f0f0f",
-    "backgroundImage": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/background.png",
+    "backgroundType": "color",
+    "backgroundColor": "#f7f7f7",
+    "backgroundImage": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/background.jpg",
     "textColor": "#333333",
     "accentColor": "#373434",
     "logoSizeA": 200,

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Football scoreboard app built with Electron + React",
   "main": "main.js",
-  "author": "KahiL Mohamed Amine kahil.mohamed.amine@proton.me",
+  "author": "solidepshere",
   "scripts": {
     "start": "electron .",
     "build-renderer": "cd renderer && npm install && npm run build",
@@ -26,19 +26,22 @@
     "directories": {
       "buildResources": "assets"
     },
-     "win": {
+    "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         }
       ],
       "icon": "assets/icon.ico"
     },
     "nsis": {
-      "oneClick": false,       
-      "perMachine": true,       
-      "allowToChangeInstallationDirectory": true, 
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Football Scoreboard"

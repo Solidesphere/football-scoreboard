@@ -30,7 +30,10 @@ export default function Scoreboard() {
       setData((prev) => ({
         ...prev,
         type: cfg.type || prev.type,
-        leagueLogo: cfg.leagueLogo || "",
+        leagueLogo:
+          cfg.league && cfg.league.logo
+            ? cfg.league.logo
+            : cfg.leagueLogo || "",
         teamA: { ...prev.teamA, ...cfg.teamA, score: 0 },
         teamB: { ...prev.teamB, ...cfg.teamB, score: 0 },
         timer: 0,
@@ -64,7 +67,10 @@ export default function Scoreboard() {
       setData((prev) => ({
         ...prev,
         type: cfg.type || prev.type,
-        leagueLogo: cfg.leagueLogo || "",
+        leagueLogo:
+          cfg.league && cfg.league.logo
+            ? cfg.league.logo
+            : cfg.leagueLogo || "",
         teamA: {
           ...prev.teamA,
           name: cfg.teamA.name,
