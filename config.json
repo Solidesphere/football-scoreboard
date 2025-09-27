@@ -1,15 +1,15 @@
 {
   "teamA": {
-    "name": "Team A",
-    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamA.jpg"
+    "name": "USMA",
+    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamA.png"
   },
   "teamB": {
-    "name": "Team B",
-    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamB.jpg"
+    "name": "MCA",
+    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamB.png"
   },
   "league": {
     "name": "League Name",
-    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/league.jpg"
+    "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/league.png"
   },
   "type": "knockout",
   "scoreboardStyle": {

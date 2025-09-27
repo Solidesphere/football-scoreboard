@@ -71,11 +71,8 @@ export default function Scoreboard() {
           cfg.league && cfg.league.logo
             ? cfg.league.logo
             : cfg.leagueLogo || "",
-        teamA: { ...prev.teamA, ...cfg.teamA, score: 0 },
-        teamB: { ...prev.teamB, ...cfg.teamB, score: 0 },
-        timer: 0,
-        status: "READY",
-        stoppageTime: cfg.stoppageTime || 0,
+        teamA: { ...prev.teamA, ...cfg.teamA },
+        teamB: { ...prev.teamB, ...cfg.teamB },
         scoreboardStyle: cfg.scoreboardStyle || prev.scoreboardStyle,
       }));
     });
