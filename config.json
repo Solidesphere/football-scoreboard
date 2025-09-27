@@ -1,10 +1,10 @@
 {
   "teamA": {
-    "name": "Team A",
+    "name": "TEAM A",
     "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamA.jpg"
   },
   "teamB": {
-    "name": "Team B",
+    "name": "TEAM B",
     "logo": "file://C:/Users/khlme/OneDrive/Documents/Project/football-scoreboard/logos/teamB.jpg"
   },
   "league": {

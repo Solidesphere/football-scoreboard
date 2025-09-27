@@ -30,11 +30,13 @@ let mainWindow;
 let configWindow;
 let scoreboardWindows = {}; // key: displayId, value: BrowserWindow
 
-const configPath = path.join(__dirname, "config.json");
-const logosDir = path.join(__dirname, "logos");
+// Use userData directory for config and logos (works in dev and production)
+const userDataDir = app.getPath("userData");
+const configPath = path.join(userDataDir, "config.json");
+const logosDir = path.join(userDataDir, "logos");
 
 // Ensure logos directory exists
-if (!fs.existsSync(logosDir)) fs.mkdirSync(logosDir);
+if (!fs.existsSync(logosDir)) fs.mkdirSync(logosDir, { recursive: true });
 
 // ---------------- Config Helpers ----------------
 function loadConfig() {
