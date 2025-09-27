@@ -1,3 +1,11 @@
+// Reload all windows on request
+ipcMain.on("reload-all-windows", () => {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
+  if (configWindow && !configWindow.isDestroyed()) configWindow.reload();
+  Object.values(scoreboardWindows).forEach((win) => {
+    if (win && !win.isDestroyed()) win.reload();
+  });
+});
 const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");

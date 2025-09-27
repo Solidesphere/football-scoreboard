@@ -58,7 +58,14 @@ export default function ConfigPage({ goBack }) {
     const cfg = await invoke("get-config");
     setConfig({ ...defaultConfig, ...cfg });
     setStyle(cfg.scoreboardStyle || defaultConfig.scoreboardStyle);
-    alert("✅ Config saved!");
+    alert("✅ Config saved! All windows will now reload.");
+    if (window.electronAPI && window.electronAPI.send) {
+      window.electronAPI.send("reload-all-windows");
+    } else if (window.ipcRenderer && window.ipcRenderer.send) {
+      window.ipcRenderer.send("reload-all-windows");
+    } else {
+      window.location.reload();
+    }
   };
 
   const inputStyle = {
@@ -295,7 +302,7 @@ export default function ConfigPage({ goBack }) {
             </button>
           </div>
         )}
-  
+
         <div style={{ marginBottom: 15 }}>
           <label>
             Score & Timer Area Background Color:

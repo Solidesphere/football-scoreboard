@@ -71,18 +71,12 @@ export default function Scoreboard() {
           cfg.league && cfg.league.logo
             ? cfg.league.logo
             : cfg.leagueLogo || "",
-        teamA: {
-          ...prev.teamA,
-          name: cfg.teamA.name,
-          logo: cfg.teamA.logo,
-          score: prev.teamA.score ?? 0,
-        },
-        teamB: {
-          ...prev.teamB,
-          name: cfg.teamB.name,
-          logo: cfg.teamB.logo,
-          score: prev.teamB.score ?? 0,
-        },
+        teamA: { ...prev.teamA, ...cfg.teamA, score: 0 },
+        teamB: { ...prev.teamB, ...cfg.teamB, score: 0 },
+        timer: 0,
+        status: "READY",
+        stoppageTime: cfg.stoppageTime || 0,
+        scoreboardStyle: cfg.scoreboardStyle || prev.scoreboardStyle,
       }));
     });
 
@@ -107,12 +101,21 @@ export default function Scoreboard() {
       .toString()
       .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
-  const formatTimeout = (s) =>
-    `${Math.floor(s / 60)
-      .toString()
-      .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
-
-  const stoppageTimesToShow = [2700, 5400, 6300, 7200]; // seconds (45, 90, 105, 120 minutes)
+  // Additional time logic
+  // Only show (+'X) and secondary timer if stoppageTime > 0 AND main timer is at a phase end
+  let mainTime = data.maxTime || 0;
+  let showAdditional = false;
+  if (data.status === "FIRST_HALF") mainTime = 45 * 60;
+  else if (data.status === "SECOND_HALF") mainTime = 90 * 60;
+  else if (data.status === "EXTRA_TIME_FIRST") mainTime = 105 * 60;
+  else if (data.status === "EXTRA_TIME_SECOND") mainTime = 120 * 60;
+  // Only show additional time if timer >= mainTime and stoppageTime > 0
+  if (data.stoppageTime > 0 && data.timer >= mainTime) {
+    showAdditional = true;
+  }
+  const additionalElapsed = data.timer > mainTime ? data.timer - mainTime : 0;
+  const additionalLimit = (data.stoppageTime || 0) * 60;
+  const showAdditionalTimer = showAdditional;
 
   return (
     <div
@@ -242,23 +245,20 @@ export default function Scoreboard() {
               alignItems: "center",
             }}
           >
-            {formatTimer(data.timer)}
-            {/* Show +stoppageTime only at 45:00, 90:00, 105:00, 120:00 if stoppageTime > 0 */}
-            {stoppageTimesToShow.includes(data.timer) &&
-              data.stoppageTime > 0 && (
-                <span
-                  style={{
-                    fontSize: "2.5rem",
-                    color: data.scoreboardStyle.accentColor || "#007bff",
-                    marginLeft: 10,
-                  }}
-                >
-                  {`+${data.stoppageTime}`}
-                </span>
-              )}
+            {formatTimer(Math.min(data.timer, mainTime))}
+            {showAdditional && (
+              <span
+                style={{
+                  fontSize: "2.5rem",
+                  color: data.scoreboardStyle.accentColor || "#007bff",
+                  marginLeft: 10,
+                }}
+              >
+                {`+'${data.stoppageTime}`}
+              </span>
+            )}
           </div>
-
-          {stoppageTimesToShow.includes(data.timer) && (
+          {showAdditionalTimer && (
             <div style={{ textAlign: "center", marginTop: 10 }}>
               <span
                 style={{
@@ -266,7 +266,9 @@ export default function Scoreboard() {
                   fontSize: "1.2rem",
                   color: data.scoreboardStyle.accentColor || "#007bff",
                 }}
-              ></span>
+              >
+                Additional Time
+              </span>
               <span
                 style={{
                   fontSize: "3.2rem",
@@ -274,7 +276,7 @@ export default function Scoreboard() {
                   marginLeft: 10,
                 }}
               >
-                {formatTimeout(timeoutTimer)}
+                {formatTimer(Math.min(additionalElapsed, additionalLimit))}
               </span>
             </div>
           )}

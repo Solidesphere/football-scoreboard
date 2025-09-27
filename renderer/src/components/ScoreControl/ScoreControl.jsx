@@ -4,6 +4,7 @@ export default function ScoreControl({ teamName, score, onChange }) {
   return (
     <div
       style={{
+        marginTop: 30,
         marginBottom: 12,
         padding: 10,
         borderRadius: 8,

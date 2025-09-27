@@ -53,45 +53,83 @@ export default function useGameTimer(initialData) {
     setGameData((prev) => {
       let newTimer = prev.timer + seconds;
 
-      // Maximum allowed time per phase
-      const maxAllowed = prev.status.startsWith("EXTRA_TIME")
-        ? 120 * 60
+      // Maximum allowed time per phase (main time)
+      const mainMax = prev.status.startsWith("EXTRA_TIME")
+        ? prev.status === "EXTRA_TIME_FIRST"
+          ? 105 * 60
+          : 120 * 60
+        : prev.status === "FIRST_HALF"
+        ? 45 * 60
+        : prev.status === "SECOND_HALF"
+        ? 90 * 60
         : prev.maxTime;
 
-      if (newTimer >= maxAllowed) {
-        newTimer = maxAllowed;
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      // If stoppageTime is set, allow timer to run into additional time
+      const additionalLimit = (prev.stoppageTime || 0) * 60;
+      const totalMax = mainMax + additionalLimit;
 
       let newStatus = prev.status;
 
-      // ---------------- Automatic phase transitions ----------------
-      const timeThresholds = {
-        FIRST_HALF: { max: 45 * 60, next: "HALFTIME" },
-        SECOND_HALF: {
-          max: 90 * 60,
-          next: (prev) =>
-            prev.type === "league"
-              ? "FULLTIME"
-              : prev.teamA.score === prev.teamB.score
-              ? "EXTRA_TIME_FIRST_PENDING"
-              : "FULLTIME",
-        },
-        EXTRA_TIME_FIRST: { max: 105 * 60, next: "EXTRA_TIME_SECOND_PENDING" },
-        EXTRA_TIME_SECOND: { max: 120 * 60, next: "EXTRA_TIME_END" },
-      };
-
-      const threshold = timeThresholds[prev.status];
-
-      if (threshold && newTimer >= threshold.max) {
-        newStatus =
-          typeof threshold.next === "function"
-            ? threshold.next(prev)
-            : threshold.next;
-        newTimer = threshold.max;
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      // Only auto-transition if not in additional time
+      if (newTimer >= mainMax && additionalLimit === 0) {
+        // Automatic phase transitions (no additional time)
+        const timeThresholds = {
+          FIRST_HALF: { max: 45 * 60, next: "HALFTIME" },
+          SECOND_HALF: {
+            max: 90 * 60,
+            next: (prev) =>
+              prev.type === "league"
+                ? "FULLTIME"
+                : prev.teamA.score === prev.teamB.score
+                ? "EXTRA_TIME_FIRST_PENDING"
+                : "FULLTIME",
+          },
+          EXTRA_TIME_FIRST: {
+            max: 105 * 60,
+            next: "EXTRA_TIME_SECOND_PENDING",
+          },
+          EXTRA_TIME_SECOND: { max: 120 * 60, next: "EXTRA_TIME_END" },
+        };
+        const threshold = timeThresholds[prev.status];
+        if (threshold && newTimer >= threshold.max) {
+          newStatus =
+            typeof threshold.next === "function"
+              ? threshold.next(prev)
+              : threshold.next;
+          newTimer = threshold.max;
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      } else if (newTimer >= totalMax && additionalLimit > 0) {
+        // If in additional time and reached the end, stop timer and auto-transition
+        newTimer = totalMax;
+        // Automatic phase transitions (after additional time)
+        const timeThresholds = {
+          FIRST_HALF: { max: totalMax, next: "HALFTIME" },
+          SECOND_HALF: {
+            max: totalMax,
+            next: (prev) =>
+              prev.type === "league"
+                ? "FULLTIME"
+                : prev.teamA.score === prev.teamB.score
+                ? "EXTRA_TIME_FIRST_PENDING"
+                : "FULLTIME",
+          },
+          EXTRA_TIME_FIRST: {
+            max: totalMax,
+            next: "EXTRA_TIME_SECOND_PENDING",
+          },
+          EXTRA_TIME_SECOND: { max: totalMax, next: "EXTRA_TIME_END" },
+        };
+        const threshold = timeThresholds[prev.status];
+        if (threshold) {
+          newStatus =
+            typeof threshold.next === "function"
+              ? threshold.next(prev)
+              : threshold.next;
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
       }
 
       const newData = { ...prev, timer: newTimer, status: newStatus };

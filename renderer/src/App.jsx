@@ -62,143 +62,7 @@ function PenaltyCircle({ result, onClick }) {
   );
 }
 
-function AdditionalTimer({
-  timeoutDuration,
-  setTimeoutDuration,
-  timeoutTimer,
-  setTimeoutTimer,
-  setTimeoutRunning,
-  send,
-  formatTimeout,
-  buttonStyle,
-}) {
-  const [minutes, setMinutes] = useState(Math.floor(timeoutDuration / 60));
-  const [seconds, setSeconds] = useState(timeoutDuration % 60);
-
-  useEffect(() => {
-    setMinutes(Math.floor(timeoutDuration / 60));
-    setSeconds(timeoutDuration % 60);
-  }, [timeoutDuration]);
-
-  const updateDuration = (newMinutes, newSeconds) => {
-    const clampedMinutes = Math.max(0, Math.min(60, newMinutes));
-    const clampedSeconds = Math.max(0, Math.min(59, newSeconds));
-    setMinutes(clampedMinutes);
-    setSeconds(clampedSeconds);
-    setTimeoutDuration(clampedMinutes * 60 + clampedSeconds);
-  };
-
-  return (
-    <div
-      style={{
-        background: "#e9ecef",
-        padding: 12,
-        borderRadius: 8,
-      }}
-    >
-      <h3 style={{ margin: 0, marginBottom: 12 }}>Additional Timer</h3>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          flexWrap: "wrap",
-          marginBottom: 12,
-        }}
-      >
-        <span>Duration:</span>
-        <input
-          type="number"
-          min={0}
-          max={60}
-          value={minutes}
-          onChange={(e) => updateDuration(Number(e.target.value) || 0, seconds)}
-          style={{ width: 40, fontSize: 16, padding: 4 }}
-          title="Minutes"
-        />
-        <button
-          onClick={() => updateDuration(minutes + 1, seconds)}
-          style={buttonStyle("#0d6efd")}
-          title="Add 1 Minute"
-        >
-          +1 min
-        </button>
-        <button
-          onClick={() => updateDuration(minutes - 1, seconds)}
-          style={buttonStyle("#0d6efd")}
-          title="Subtract 1 Minute"
-          disabled={minutes === 0}
-        >
-          -1 min
-        </button>
-        <span>min</span>
-
-        <input
-          type="number"
-          min={0}
-          max={59}
-          value={seconds}
-          onChange={(e) => updateDuration(minutes, Number(e.target.value) || 0)}
-          style={{ width: 40, fontSize: 16, padding: 4 }}
-          title="Seconds"
-        />
-        <button
-          onClick={() => updateDuration(minutes, seconds + 1)}
-          style={buttonStyle("#0d6efd")}
-          title="Add 1 Second"
-          disabled={seconds === 59}
-        >
-          +1 sec
-        </button>
-        <button
-          onClick={() => updateDuration(minutes, seconds - 1)}
-          style={buttonStyle("#0d6efd")}
-          title="Subtract 1 Second"
-          disabled={seconds === 0}
-        >
-          -1 sec
-        </button>
-        <span>sec</span>
-
-        <button
-          onClick={() => {
-            setTimeoutTimer(0);
-            setTimeoutRunning(true);
-            send("update-timeout", 0);
-          }}
-          style={buttonStyle("#198754", true)}
-        >
-          Start
-        </button>
-        <button
-          onClick={() => setTimeoutRunning(false)}
-          style={buttonStyle("#6c757d")}
-        >
-          Pause
-        </button>
-        <button
-          onClick={() => {
-            setTimeoutRunning(false);
-            setTimeoutTimer(0);
-            send("update-timeout", 0);
-          }}
-          style={buttonStyle("#dc3545")}
-        >
-          Reset
-        </button>
-      </div>
-      <div
-        style={{
-          fontSize: "2rem",
-          fontWeight: "bold",
-          textAlign: "center",
-        }}
-      >
-        {formatTimeout(timeoutTimer)}
-      </div>
-    </div>
-  );
-}
+// ...existing code...
 
 export default function App() {
   const [scoreboards, setScoreboards] = useState([]);
@@ -393,49 +257,51 @@ export default function App() {
           Match type: {gameData.type}
         </h3>
 
-        {/* Stoppage Time Controls */}
+        {/* Set Additional Time */}
         <div
           style={{
+            marginBottom: 24,
             background: "#e9ecef",
             padding: 12,
             borderRadius: 8,
-            marginBottom: 16,
+            maxWidth: 320,
           }}
         >
-          <h3 style={{ margin: 0 }}>Additional time</h3>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <input
-              type="number"
-              min={0}
-              max={30}
-              value={gameData.stoppageTime || 0}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(30, Number(e.target.value)));
-                setGame({ stoppageTime: value });
-              }}
-              style={{ width: 60, fontSize: 18, padding: 4 }}
-            />
-            <span>minutes</span>
-            <button
-              onClick={() => setGame({ stoppageTime: 0 })}
-              style={{
-                padding: "4px 10px",
-                marginLeft: 8,
-                background: "#dc3545",
-                color: "#fff",
-                border: "none",
-                borderRadius: 4,
-                fontWeight: "bold",
-                cursor: "pointer",
-              }}
-              title="Clear Stoppage Time"
-            >
-              Clear
-            </button>
-          </div>
-          <div style={{ fontSize: "1.1rem", marginTop: 6, color: "#007bff" }}>
-            Current: {gameData.stoppageTime || 0} min
-          </div>
+          <label
+            htmlFor="stoppageTimeInput"
+            style={{ fontWeight: 600, marginRight: 10 }}
+          >
+            Set Additional Time:
+          </label>
+          <input
+            id="stoppageTimeInput"
+            type="number"
+            min={0}
+            max={30}
+            value={gameData.stoppageTime || 0}
+            onChange={(e) => {
+              const value = Math.max(0, Math.min(30, Number(e.target.value)));
+              setGame({ stoppageTime: value });
+            }}
+            style={{ width: 60, fontSize: 18, padding: 4, marginRight: 8 }}
+          />
+          <span>minutes</span>
+          <button
+            onClick={() => setGame({ stoppageTime: 0 })}
+            style={{
+              padding: "4px 10px",
+              marginLeft: 8,
+              background: "#dc3545",
+              color: "#fff",
+              border: "none",
+              borderRadius: 4,
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+            title="Clear Additional Time"
+          >
+            Clear
+          </button>
         </div>
 
         {/* Penalty Shootout Controls */}
@@ -634,17 +500,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Additional Timer integrated here */}
-        <AdditionalTimer
-          timeoutDuration={timeoutDuration}
-          setTimeoutDuration={setTimeoutDuration}
-          timeoutTimer={timeoutTimer}
-          setTimeoutTimer={setTimeoutTimer}
-          setTimeoutRunning={setTimeoutRunning}
-          send={send}
-          formatTimeout={formatTimeout}
-          buttonStyle={buttonStyle}
-        />
+        {/* ...existing code... */}
       </section>
 
       {/* Timer Component */}
