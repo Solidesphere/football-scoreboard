@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Football scoreboard app built with Electron + React",
   "main": "main.js",
-  "author": "solidepshere",
+  "author": "github.com/solidesphere",
   "scripts": {
     "start": "electron .",
     "build-renderer": "cd renderer && npm install && npm run build",
@@ -15,7 +15,7 @@
   },
   "build": {
     "appId": "com.yourname.footballscoreboard",
-    "productName": "Football Scoreboard",
+    "productName": "SolidScore",
     "files": [
       "main.js",
       "preload.js",

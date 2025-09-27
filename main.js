@@ -1,3 +1,5 @@
+const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
+
 // Reload all windows on request
 ipcMain.on("reload-all-windows", () => {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
@@ -6,7 +8,6 @@ ipcMain.on("reload-all-windows", () => {
     if (win && !win.isDestroyed()) win.reload();
   });
 });
-const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
